@@ -71,12 +71,12 @@ int main(int argc,char** argv)
 
 
 
-  uint8_t *video_dst_data[4],*video_src_data[4];
-  int *video_dst_linesize[4],*video_src_linesize[4];
-  ret=av_image_alloc(video_src_data,video_src_linesize,pcodectx->width,pcodectx->height,pcodectx->pix_fmt,1);
+  uint8_t *video_dst_data[4];
+  int *video_dst_linesize[4];
+  //  ret=av_image_alloc(video_src_data,video_src_linesize,pcodectx->width,pcodectx->height,pcodectx->pix_fmt,1);
   ret=av_image_alloc(video_dst_data,video_dst_linesize,pcodectx->width,pcodectx->height,AV_PIX_FMT_BGR24,1);
-
-
+  
+  
   printf("\033[32mpix_fmt's name is %s\n\033[0m",av_get_pix_fmt_name(pcodectx->pix_fmt));
  
   
@@ -104,8 +104,8 @@ int main(int argc,char** argv)
   SDL_Event e;
   int len;
   struct SwsContext *swsctx;
-  swsctx=sws_getContext(pcodectx->width,pcodectx->height,pcodectx->pix_fmt,pcodectx->width,pcodectx->height,AV_PIX_FMT_BGR24,SWS_GAUSS,NULL,NULL,NULL);
-  
+  swsctx=sws_getContext(pcodectx->width,pcodectx->height,pcodectx->pix_fmt,pcodectx->width,pcodectx->height,AV_PIX_FMT_BGR24,SWS_SINC,NULL,NULL,NULL);
+  int i=0;
     while(1)
     {
       ret=SDL_PollEvent(&e);
@@ -121,8 +121,10 @@ int main(int argc,char** argv)
 		}
 	      if(getframe )
 		{
-		  av_image_copy(video_src_data,video_src_linesize,frame->data,frame->linesize,pcodectx->pix_fmt,pcodectx->width,pcodectx->height);
-		  sws_scale(swsctx,video_src_data,video_src_linesize,0,pcodectx->height,video_dst_data,video_dst_linesize); 
+		  i++;
+		  
+		  //av_image_copy(video_src_data,video_src_linesize,frame->data,frame->linesize,pcodectx->pix_fmt,pcodectx->width,pcodectx->height);/*没有必要再复制一遍原来的解包数据，直接用frame里的即可*/
+		  sws_scale(swsctx,frame->data,frame->linesize,0,pcodectx->height,video_dst_data,video_dst_linesize); 
 		  SDL_Rect sdlRT;
 		  sdlRT.h = pcodectx->height;
 		  sdlRT.w = pcodectx->width;
@@ -131,11 +133,12 @@ int main(int argc,char** argv)
 		  int iPitch = pcodectx->width*SDL_BYTESPERPIXEL(SDL_PIXELFORMAT_BGR24);
 		  //int iPitch = pcodectx->width*SDL_BYTESPERPIXEL(SDL_PIXELFORMAT_YV12);
 		  //SDL_UpdateTexture(tex,&sdlRT,video_src_data[0],iPitch);
+
 		  SDL_UpdateTexture(tex,&sdlRT,video_dst_data[0],iPitch);
 		  SDL_RenderClear(myrender);
 		  SDL_RenderCopy(myrender,tex,NULL,NULL);
 		  SDL_RenderPresent(myrender);
-		  SDL_Delay(40);
+		  SDL_Delay(80);
 
 		}
 	    }

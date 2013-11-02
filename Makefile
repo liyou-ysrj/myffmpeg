@@ -5,7 +5,7 @@ all:
 clean:clean_tmp clean_exe
 	
 clean_tmp:
-	rm *~
+	rm -f *~
 clean_exe:
-	rm play
+	rm -f play
 
